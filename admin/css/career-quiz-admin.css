@@ -1,0 +1,54 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+
+/* Career Quiz options page styles */
+:root {
+   --page-content-size: 1000px;
+}
+
+#career-quiz-outcomes-container {
+   display: flex;
+   flex-direction: row;
+   flex-wrap: wrap;
+   gap: 10px;
+   /* max-width: var(--page-content-size); */
+}
+
+.question-text {
+   width: 100%;
+}
+
+.career-quiz-question-group {
+   max-width: var(--page-content-size);
+}
+
+.career-quiz-outcome-group {
+   max-width: 300px;
+}
+
+.career-quiz-question-group,
+.career-quiz-outcome-group {
+   margin-bottom: 20px;
+   padding: 20px;
+   border: 1px solid #ddd;
+   background: #f9f9f9;
+}
+
+.career-quiz-question-group label,
+.career-quiz-outcome-group label {
+   display: block;
+   margin-bottom: 5px;
+}
+
+.career-quiz-question-group button.remove-question,
+.career-quiz-outcome-group button.remove-outcome {
+   margin-top: 10px;
+   color: rgb(196, 27, 27);
+   padding: 0;
+   text-decoration: underline;
+   cursor: pointer;
+   border: none;
+   background: none;
+}

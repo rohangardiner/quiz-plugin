@@ -1,0 +1,62 @@
+/**
+ * All of the CSS for your public-facing functionality should be
+ * included in this file.
+ */
+
+.career-quiz {
+   display: flex;
+   flex-direction: column;
+   gap: 20px;
+}
+
+.quiz-question {
+   border: 1px solid #ccc;
+   padding: 10px;
+   border-radius: 4px;
+}
+.quiz-question .question-title {
+   margin-bottom: 0;
+   font-weight: 500;
+}
+.quiz-question .question-option {
+   margin-right: 5px;
+   height: 1.2rem;
+   width: 1.2rem;
+}
+
+.quiz-results {
+   display: flex;
+   flex-direction: row;
+   align-items: flex-start;
+   gap: 20px;
+   padding: 10px;
+   border: 1px solid #ccc;
+}
+.quiz-results .result-content {
+   display: flex;
+   flex-direction: column;
+}
+.quiz-results .result-text {
+   flex-grow: 1;
+}
+.quiz-results .result-image {
+   max-width: 300px;
+   object-fit: contain;
+   border-radius: 4px;
+}
+.quiz-results .result-links {
+   display: flex;
+   flex-direction: row;
+   gap: 10px;
+   align-items: center;
+}
+.quizbutton {
+   background-color: teal;
+   border-radius: 50px;
+   padding: 10px 20px;
+   color: #fff;
+   text-transform: uppercase;
+   font-weight: 500;
+   border: 1px solid teal;
+   text-decoration: none;
+}
