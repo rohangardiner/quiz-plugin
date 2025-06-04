@@ -1,4 +1,4 @@
-=== Quiz Plugin ===
+=== Career Quiz ===
 Contributors: rohangardiner
 Tags: quiz, career
 Requires at least: 3.0

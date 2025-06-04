@@ -6,7 +6,7 @@ REM Set the path to 7z.exe if it's not in your PATH.  If it is in your PATH, thi
 set "SEVENZIP_PATH=C:\Program Files\7-Zip\7z.exe"
 
 REM Set the name of the zip file you want to create.
-set "ZIP_FILENAME=quiz-plugin.zip"
+set "ZIP_FILENAME=career-quiz.zip"
 set "OUTPUT_FOLDER=release"
 
 REM Set the files and folders to include in the zip file.

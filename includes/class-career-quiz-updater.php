@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) || class_exists( 'WPGitHubUpdater' ) || class_exists
  * @version 1.6
  * @author Joachim Kudish <info@jkudish.com>
  * @link http://jkudish.com
- * @package WP_GitHub_Updater
+ * @package WP_GitHub_Updater_Career_Quiz
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @copyright Copyright (c) 2011-2013, Joachim Kudish
  *
@@ -31,7 +31,7 @@ if ( ! defined( 'ABSPATH' ) || class_exists( 'WPGitHubUpdater' ) || class_exists
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-class WP_GitHub_Updater {
+class WP_GitHub_Updater_Career_Quiz {
 
 	/**
 	 * GitHub Updater version
@@ -79,7 +79,7 @@ class WP_GitHub_Updater {
 		// if the minimum config isn't set, issue a warning and bail
 		if ( ! $this->has_minimum_config() ) {
 			$message = 'The GitHub Updater was initialized without the minimum required configuration, please check the config in your plugin. The following params are missing: ';
-			$message .= implode( ',', $this->missing_config );
+			$message .= implode( ',', (array) $this->missing_config );
 			_doing_it_wrong( __CLASS__, $message , self::VERSION );
 			return;
 		}
@@ -317,6 +317,9 @@ class WP_GitHub_Updater {
 	 */
 	public function get_date() {
 		$_date = $this->get_github_data();
+		if ( is_array( $_date ) ) {
+			$_date = (object) $_date;
+		}
 		return ( !empty( $_date->updated_at ) ) ? date( 'Y-m-d', strtotime( $_date->updated_at ) ) : false;
 	}
 
@@ -328,7 +331,7 @@ class WP_GitHub_Updater {
 	 * @return string $description the description
 	 */
 	public function get_description() {
-		$_description = $this->get_github_data();
+		$_description = (object) $this->get_github_data();
 		return ( !empty( $_description->description ) ) ? $_description->description : false;
 	}
 

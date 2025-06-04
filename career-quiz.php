@@ -16,7 +16,7 @@
  * Plugin Name:       Career Quiz
  * Plugin URI:        https://https://ncoa.com.au/
  * Description:       Short quiz to find a user's ideal course.
- * Version:           1.1.0
+ * Version:           1.1.1
  * Author:            Rohan
  * Author URI:        https://https://ncoa.com.au//
  * License:           GPL-2.0+
@@ -194,8 +194,8 @@ function run_career_quiz() {
    }
 
    // Check for plugin updates
-   add_action('init', 'github_plugin_updater_test_init');
-   function github_plugin_updater_test_init() {
+   add_action('init', 'github_plugin_updater_career_quiz');
+   function github_plugin_updater_career_quiz() {
       require_once plugin_dir_path(__FILE__) . 'includes/class-career-quiz-updater.php';
       define('WP_GITHUB_FORCE_UPDATE', true);
       if (is_admin()) {
@@ -212,7 +212,7 @@ function run_career_quiz() {
             'readme' => 'README.md', // which file to use as the readme for the version number
             'access_token' => '', // Access private repositories by authorizing under Plugins > GitHub Updates when this example plugin is installed
          );
-         new WP_GitHub_Updater($config);
+         new WP_GitHub_Updater_Career_Quiz($config);
       }
    }
 }

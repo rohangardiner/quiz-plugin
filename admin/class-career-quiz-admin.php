@@ -129,7 +129,7 @@ function career_quiz_settings_init() {
       array(
       'label_for'         => 'career_quiz_field_questions',
       'class'             => 'career_quiz_row',
-      'ncoaads_custom_data' => 'custom',
+      'career_quiz_custom_data' => 'custom',
    )
    );
 

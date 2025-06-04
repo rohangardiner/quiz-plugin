@@ -1,8 +1,8 @@
-# Quiz Plugin
+# Career Quiz
 Create and display career quiz questions
 
 ## Changelog
-~Current Version:1.1.0~
+~Current Version:1.1.1~
 
 ### 1.1.0
 * Added Plugin update feature
