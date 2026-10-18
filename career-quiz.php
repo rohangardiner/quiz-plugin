@@ -8,17 +8,17 @@
  * registers the activation and deactivation functions, and defines a function
  * that starts the plugin.
  *
- * @link              https://https://ncoa.com.au/
+ * @link              https://rohangardiner.com/
  * @since             1.0.0
  * @package           Career_Quiz
  *
  * @wordpress-plugin
  * Plugin Name:       Career Quiz
- * Plugin URI:        https://https://ncoa.com.au/
+ * Plugin URI:        https://rohangardiner.com/
  * Description:       Short quiz to find a user's ideal course.
- * Version:           1.1.2
+ * Version:           1.1.3
  * Author:            Rohan
- * Author URI:        https://https://ncoa.com.au//
+ * Author URI:        https://rohangardiner.com/
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       career-quiz
@@ -35,13 +35,14 @@ if (! defined('WPINC')) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define('CAREER_QUIZ_VERSION', '1.0.0');
+define('CAREER_QUIZ_VERSION', '1.1.2');
 
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-career-quiz-activator.php
  */
-function activate_career_quiz() {
+function activate_career_quiz()
+{
    require_once plugin_dir_path(__FILE__) . 'includes/class-career-quiz-activator.php';
    Career_Quiz_Activator::activate();
 }
@@ -50,7 +51,8 @@ function activate_career_quiz() {
  * The code that runs during plugin deactivation.
  * This action is documented in includes/class-career-quiz-deactivator.php
  */
-function deactivate_career_quiz() {
+function deactivate_career_quiz()
+{
    require_once plugin_dir_path(__FILE__) . 'includes/class-career-quiz-deactivator.php';
    Career_Quiz_Deactivator::deactivate();
 }
@@ -73,13 +75,15 @@ require plugin_dir_path(__FILE__) . 'includes/class-career-quiz.php';
  *
  * @since    1.0.0
  */
-function run_career_quiz() {
+function run_career_quiz()
+{
 
    $plugin = new Career_Quiz();
    $plugin->run();
 
    add_shortcode('career-quiz', 'accsc_career_quiz');
-   function accsc_career_quiz() {
+   function accsc_career_quiz()
+   {
       // Check if form was submitted already
       if (isset($_POST['career_quiz_submitted'])) {
          return show_results($_POST); // Pass $_POST or relevant data
@@ -87,7 +91,7 @@ function run_career_quiz() {
 
       // Get number of questions
       $num_questions_option = get_option('career_quiz_number');
-      $num_questions = isset($num_questions_option['career_quiz_field_questions']) ? esc_attr($num_questions_option['career_quiz_field_questions']) : 5; // Default to 5
+      $num_questions = isset($num_questions_option['career_quiz_field_questions']) ? max(1, (int) $num_questions_option['career_quiz_field_questions']) : 5; // Default to 5, minimum 1
       $quiz_questions = get_option('career_quiz_questions', array());
       $quizHTML = '';
 
@@ -113,8 +117,12 @@ function run_career_quiz() {
          $questionHTML = '';
          $questionHTML .= '<div class="quiz-question">';
          $questionHTML .= '<p class="question-title">' . esc_html($question['question']) . '</p>';
-         foreach ($question['answers'] as $option) {
-            $questionHTML .= '<input 
+         foreach ($question['answers'] ?? array() as $option) {
+            // Skip blank answer slots
+            if ('' === trim($option['text'] ?? '')) {
+               continue;
+            }
+            $questionHTML .= '<input
            type="radio" 
            class="question-option" 
            name="q' . esc_attr($index) . '" 
@@ -135,23 +143,29 @@ function run_career_quiz() {
       return $quizHTML;
    }
 
-   function show_results($post_data) {
+   function show_results($post_data)
+   {
       // Get questions and outcomes from options to match up scores
       $quiz_questions = get_option('career_quiz_questions', array());
-      $quiz_outcomes = get_option('career_quiz_outcomes', array());
+      // Re-index outcomes so positions match array_column() below (removed outcomes leave gaps in the keys)
+      $quiz_outcomes = array_values((array) get_option('career_quiz_outcomes', array()));
 
       // Initialise Result page HTML to return
       $resultHTML = '';
 
+      if (empty($quiz_outcomes)) {
+         return '<div class="quiz-results"><p class="result-text">' . esc_html__('No results are available yet.', 'career-quiz') . '</p></div>';
+      }
+
       // Create array and set initial weightings to 0
       $weightings = array();
       foreach ($quiz_outcomes as $outcome) {
-         $weightings[$outcome['name']] = 0.0;
+         $weightings[$outcome['name'] ?? ''] = 0.0;
       }
 
       foreach ($quiz_questions as $index => $question) {
-         // The name attribute for each question's radio is "q{$index}"
-         $answer_text = isset($post_data["q$index"]) ? $post_data["q$index"] : null;
+         // The name attribute for each question's radio is "q{$index}". WordPress slashes $_POST, so unslash before comparing
+         $answer_text = isset($post_data["q$index"]) ? wp_unslash($post_data["q$index"]) : null;
          $selected_answer = null;
 
          // Find the selected answer in the question's answers
@@ -165,27 +179,34 @@ function run_career_quiz() {
          }
 
          // Add selected answer weighting to slected outcome in array
-         if ($selected_answer) {
-            $weightings[$selected_answer['outcome']] += $selected_answer['weighting'];
+         // Skip answers whose outcome has since been renamed or removed
+         if ($selected_answer && isset($weightings[$selected_answer['outcome'] ?? ''])) {
+            $weightings[$selected_answer['outcome']] += (float) ($selected_answer['weighting'] ?? 0);
          }
       }
 
       // Get the name of the outcome with the highest total weight
-      $winning_outcome = array_search(max($weightings), $weightings);
-      // Search outcomes array for outcome with matching name, get that index. Defaults to 1 if not found.
-      $index = array_search($winning_outcome, array_column($quiz_outcomes, 'name')) ?? 1;
+      $winning_outcome = array_search(max($weightings), $weightings, true);
+      // Search outcomes array for outcome with matching name, get that index. Defaults to the first outcome if not found.
+      $index = array_search((string) $winning_outcome, array_map('strval', array_column($quiz_outcomes, 'name')), true);
+      if (false === $index) {
+         $index = 0;
+      }
+      $outcome = $quiz_outcomes[$index];
 
       // Build and return your results HTML
       $resultHTML .= '<div class="quiz-results">';
-         $resultHTML .= '<img src="' . $quiz_outcomes[$index]['image'] . '" class="result-image">';
-         $resultHTML .= '<div class="result-content">';
-            $resultHTML .= '<h2 class="result-title">' . $quiz_outcomes[$index]['name'] . '</h2>';
-            $resultHTML .= '<p class="result-text">' . $quiz_outcomes[$index]['description'] . '</p>';
-            $resultHTML .= '<div class="result-links">';
-               $resultHTML .= '<a href="' . $quiz_outcomes[$index]['link'] . '" class="quizbutton">Browse Courses</a>';
-               $resultHTML .= '<a href="' . esc_url(add_query_arg('retry_quiz', '1')) . '">Back to Quiz</a>';
-            $resultHTML .= '</div>';
-         $resultHTML .= '</div>';
+      if (! empty($outcome['image'])) {
+         $resultHTML .= '<img src="' . esc_url($outcome['image']) . '" class="result-image">';
+      }
+      $resultHTML .= '<div class="result-content">';
+      $resultHTML .= '<h2 class="result-title">' . esc_html($outcome['name'] ?? '') . '</h2>';
+      $resultHTML .= '<p class="result-text">' . wp_kses_post($outcome['description'] ?? '') . '</p>';
+      $resultHTML .= '<div class="result-links">';
+      $resultHTML .= '<a href="' . esc_url($outcome['link'] ?? '') . '" class="quizbutton">Browse Courses</a>';
+      $resultHTML .= '<a href="' . esc_url(add_query_arg('retry_quiz', '1')) . '">Back to Quiz</a>';
+      $resultHTML .= '</div>';
+      $resultHTML .= '</div>';
       $resultHTML .= '</div>';
 
       // Clear quiz_submitted flag, allowing another submission if the user wants
@@ -195,12 +216,9 @@ function run_career_quiz() {
 
    // Check for plugin updates
    add_action('init', 'github_plugin_updater_career_quiz');
-   function github_plugin_updater_career_quiz() {
+   function github_plugin_updater_career_quiz()
+   {
       require_once plugin_dir_path(__FILE__) . 'includes/class-career-quiz-updater.php';
-
-      if ( ! defined( 'WP_GITHUB_FORCE_UPDATE' ) ) {
-         define('WP_GITHUB_FORCE_UPDATE', true);
-      }
 
       if (is_admin()) {
          $config = array(

@@ -2,7 +2,7 @@
 Create and display career quiz questions
 
 ## Changelog
-~Current Version:1.1.2~
+~Current Version:1.1.3~
 
 ### 1.1.0
 * Added Plugin update feature

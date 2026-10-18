@@ -39,13 +39,13 @@ class WP_GitHub_Updater_Career_Quiz {
 	const VERSION = 1.6;
 
 	/**
-	 * @var $config the config for the updater
+	 * @var array $config the config for the updater
 	 * @access public
 	 */
 	var $config;
 
 	/**
-	 * @var $missing_config any config that is missing from the initialization of this instance
+	 * @var array $missing_config any config that is missing from the initialization of this instance
 	 * @access public
 	 */
 	var $missing_config;
@@ -93,7 +93,7 @@ class WP_GitHub_Updater_Career_Quiz {
 		add_filter( 'upgrader_post_install', array( $this, 'upgrader_post_install' ), 10, 3 );
 
 		// set timeout
-		add_filter( 'http_request_timeout', array( $this, 'http_request_timeout' ) );
+		add_filter( 'http_request_timeout', array( $this, 'http_request_timeout' ), 10, 2 );
 
 		// set sslverify for zip download
 		add_filter( 'http_request_args', array( $this, 'http_request_sslverify' ), 10, 2 );
@@ -183,10 +183,16 @@ class WP_GitHub_Updater_Career_Quiz {
 	 * Callback fn for the http_request_timeout filter
 	 *
 	 * @since 1.0
+	 * @param int    $timeout the current timeout value
+	 * @param string $url     the request URL
 	 * @return int timeout value
 	 */
-	public function http_request_timeout() {
-		return 2;
+	public function http_request_timeout( $timeout, $url = '' ) {
+		// Only shorten the timeout for this updater's own GitHub requests
+		if ( 0 === strpos( $url, $this->config['api_url'] ) || 0 === strpos( $url, $this->config['raw_url'] ) )
+			return 2;
+
+		return $timeout;
 	}
 
 	/**
@@ -395,7 +401,7 @@ class WP_GitHub_Updater_Career_Quiz {
 
 		// Check if this call API is for the right plugin
 		if ( !isset( $response->slug ) || $response->slug != $this->config['slug'] )
-			return false;
+			return $false;
 
 		$response->slug = $this->config['slug'];
 		$response->plugin_name  = $this->config['plugin_name'];
@@ -426,6 +432,10 @@ class WP_GitHub_Updater_Career_Quiz {
 	public function upgrader_post_install( $true, $hook_extra, $result ) {
 
 		global $wp_filesystem;
+
+		// Only act on this plugin's own update, not every plugin/theme upgrade
+		if ( ! isset( $hook_extra['plugin'] ) || $hook_extra['plugin'] !== $this->config['slug'] )
+			return $result;
 
 		// Move & Activate
 		$proper_destination = WP_PLUGIN_DIR.'/'.$this->config['proper_folder_name'];

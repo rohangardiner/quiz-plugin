@@ -200,7 +200,7 @@ function career_quiz_field_number_cb($args) {
       id="<?php echo esc_attr($args['label_for']); ?>"
       name="career_quiz_number[<?php echo esc_attr($args['label_for']); ?>]"
       value="<?php echo $value; ?>"
-      min="0"
+      min="1"
       step="1"
       placeholder="Number of questions" />
    <p class="description">
@@ -243,9 +243,9 @@ function career_quiz_field_questions_cb($args) {
                                 <select name="career_quiz_questions[<?php echo $index; ?>][answers][<?php echo $i; ?>][outcome]">
                                     <option value=""><?php esc_html_e('Select an Outcome', 'career_quiz'); ?></option>
                                     <?php foreach ($outcomes as $outcome): ?>
-                                        <?php $name = isset($outcome['name']) ? esc_html($outcome['name']) : ''; ?>
+                                        <?php $name = $outcome['name'] ?? ''; ?>
                                         <option value="<?php echo esc_attr($name); ?>" <?php selected($question['answers'][$i]['outcome'] ?? '', $name); ?>>
-                                            <?php echo $name; ?>
+                                            <?php echo esc_html($name); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -267,9 +267,11 @@ function career_quiz_field_questions_cb($args) {
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('career-quiz-questions-container');
             const addButton = document.getElementById('add-question');
+            // Continue from the highest existing index so new questions never overwrite saved ones after a removal
+            let nextIndex = Math.max(-1, ...Array.from(container.children).map(el => parseInt(el.dataset.index, 10) || 0)) + 1;
 
             addButton.addEventListener('click', function () {
-                const index = container.children.length;
+                const index = nextIndex++;
                 const group = document.createElement('div');
                 group.className = 'career-quiz-question-group';
                 group.dataset.index = index;
@@ -292,8 +294,8 @@ function career_quiz_field_questions_cb($args) {
                                     <select name="career_quiz_questions[${index}][answers][${i}][outcome]">
                                         <option value=""><?php esc_html_e('Select an Outcome', 'career_quiz'); ?></option>
                                         <?php foreach ($outcomes as $outcome): ?>
-                                            <?php $name = isset($outcome['name']) ? esc_html($outcome['name']) : ''; ?>
-                                            <option value="<?php echo esc_attr($name); ?>"><?php echo $name; ?></option>
+                                            <?php $name = $outcome['name'] ?? ''; ?>
+                                            <option value="<?php echo esc_attr($name); ?>"><?php echo esc_html($name); ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </label>
@@ -364,9 +366,11 @@ function career_quiz_field_outcomes_cb($args) {
         document.addEventListener('DOMContentLoaded', function () {
             const container = document.getElementById('career-quiz-outcomes-container');
             const addButton = document.getElementById('add-outcome');
+            // Continue from the highest existing index so new outcomes never overwrite saved ones after a removal
+            let nextIndex = Math.max(-1, ...Array.from(container.children).map(el => parseInt(el.dataset.index, 10) || 0)) + 1;
 
             addButton.addEventListener('click', function () {
-                const index = container.children.length;
+                const index = nextIndex++;
                 const group = document.createElement('div');
                 group.className = 'career-quiz-outcome-group';
                 group.dataset.index = index;
@@ -383,6 +387,10 @@ function career_quiz_field_outcomes_cb($args) {
                     <label>
                         <?php esc_html_e('Link:', 'career_quiz'); ?>
                         <input type="url" name="career_quiz_outcomes[${index}][link]" />
+                    </label>
+                    <label>
+                        <?php esc_html_e('Image:', 'career_quiz'); ?>
+                        <input type="url" name="career_quiz_outcomes[${index}][image]" />
                     </label>
                     <button type="button" class="remove-outcome"><?php esc_html_e('Remove Outcome', 'career_quiz'); ?></button>
                 `;
